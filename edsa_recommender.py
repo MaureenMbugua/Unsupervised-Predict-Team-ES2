@@ -35,6 +35,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from numpy import random
 from PIL import Image
+from wordcloud import WordCloud
+from ipywidgets import interact, interact_manual, widgets
 import time
 
 # Custom Libraries
@@ -61,7 +63,8 @@ def get_title(genre: str):
 
 genres_df, ratings = data_loader()
 genres = genres_df.genre.unique()
-
+trend_df = pd.read_csv('./streamlit_dataset/movie_trend.csv')
+trend_df.drop("Unnamed: 0", axis=1, inplace=True)
 
 def viza(title: str):
     # Extract selected movie ratings
@@ -77,13 +80,13 @@ def viza(title: str):
     grouped.rename(columns={'title': 'rating_count'}, inplace=True)
 
     # Create the figure
-    fig = plt.figure(figsize=(15, 15))
+    fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(122)
 
     # Create the colour palette
     temp = grouped['rating_count']
     temp_mod = [f'{round((x / sum(temp)) * 100)}%' for x in temp]
-    labels = [f'{x} Stars \n{y}' for x, y in zip(grouped.index, temp_mod)]
+    labels = [f'{x} Stars - {y}' for x, y in zip(grouped.index, temp_mod)]
     theme = plt.get_cmap('Reds')
     ax.set_prop_cycle("color", [theme(1. * i / len(labels))
                                 for i in range(len(labels))])
@@ -107,8 +110,35 @@ def viza(title: str):
     # Display the donut chart with a legend
     ax.set_title(f'Rating distribution for the {title}\n', fontsize=15)
     plt.tight_layout()
-    plt.show()
     return fig
+
+
+def bag_of_words_count(words, word_dict={}):
+    """ this function takes in a list of words and returns a dictionary
+        with each word as a key, and the value represents the number of
+        times that word appeared"""
+    words = words.split()
+    for word in words:
+        if word in word_dict.keys():
+            word_dict[word] += 1
+        else:
+            word_dict[word] = 1
+    return word_dict
+
+
+def title_extract():
+    """This use to compile all the word and there frequency
+    in the individual category found in a particular column"""
+    count = 0
+    result = {}
+    type_labels = genres_df.genre.unique()
+    genres = {}
+    df_grp = genres_df.groupby('genre')
+    for pp in type_labels:
+        genres[pp] = {}
+        for row in df_grp.get_group(pp)['title']:
+            genres[pp] = bag_of_words_count(row, genres[pp])
+    return genres
 
 
 title_list = load_movie_titles('resources/data/movies.csv')
@@ -205,7 +235,7 @@ def main():
             st.write('Pick subject you want an insight on:')
         with pick:
             ratings_cat = st.checkbox('Film ratings')
-            genres_cat = st.checkbox('Genre Frequency')
+            genres_cat = st.checkbox('All about Genre')
             trending_cat = st.checkbox('Trending Movies')
 
         if ratings_cat:
@@ -216,13 +246,66 @@ def main():
             result = viza(option)
             st.pyplot(result, use_container_width=True)
 
+            # distribution of mean rating
+            rating_grp = ratings.groupby("movieId")[["rating"]].mean()
+            fig, ax = plt.subplots(figsize=(10, 7))
+            sns.histplot(data=rating_grp, x='rating', bins=10)
+            ax.set_title(f'General Rating Distribution', fontsize=30)
+            st.pyplot(fig, use_container_width=True)
+
         if genres_cat:
             st.subheader("Genre Fair")
-            st.markdown('Coming up')
+            if ratings_cat:
+                pass
+            else:
+                genre_select = st.selectbox("pick genre category", genres[1:])
+            # visualizing how the genres of the movies are distributed
+            df_grp_gens = genres_df.groupby("genre").agg({"title": "count"}).reset_index()
+            fig, ax = plt.subplots(figsize=(20, 15))
+            ax = sns.barplot(data=df_grp_gens, x="genre", y="title")
+            ax.set_xticks(ax.get_xticks())
+            ax.set_ylabel('Frequency', fontsize=30)
+            ax.set_xlabel('genre', fontsize=30)
+            ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize=30)
+            ax.set_title(f'Frequency of Genres', fontsize=60)
+            st.pyplot(fig, use_container_width=True)
+
+            # wordcloud plot
+            d = title_extract()
+            fig, ax = plt.subplots(figsize=(20, 15))
+            word_cloud_genre = WordCloud(width=512, height=384, background_color='black', min_font_size=2,
+                                         min_word_length=3).generate(str(d[genre_select]))
+            ax.imshow(word_cloud_genre)
+            ax.axis("off")
+            ax.set_title(f'Movie keywords for {genre_select}', fontsize=60)
+            st.pyplot(fig, use_container_width=True)
 
         if trending_cat:
             st.subheader("Trending Movies")
             st.markdown('Trendy stuff Coming up')
+            df_grp = trend_df.groupby('genre')
+
+            if ratings_cat:
+                pass
+            else:
+                genre_select = st.selectbox("pick genre category", genres[1:])
+
+            num = st.slider("Number of movies", 1, 50, 5)
+            filter_key = st.radio(
+                "Filter trends based on:",
+                ('Recent', 'Popular', 'Hot-List'))
+
+            if filter_key == 'Popular':
+                temp = df_grp.get_group(genre_select).sort_values(['popularity', 'weighted_rating'], ascending=False)[:num]
+                st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "popularity"]])
+
+            elif filter_key == 'Recent':
+                temp = df_grp.get_group(genre_select).sort_values(['year_made', 'weighted_rating'], ascending=False)[:num]
+                st.dataframe(temp.reset_index(drop=True)[["title", "vote_count", "vote_average", "weighted_rating", "year_made"]])
+
+            else:
+                temp = df_grp.get_group(genre_select).sort_values('weighted_rating', ascending=False)[:num]
+                st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "weighted_rating"]])
     # -------------------------------------------------------------------
 
     # Team profiling
