@@ -50,6 +50,10 @@ from recommenders.content_based import content_model
 def data_loader():
     genre_df = pd.read_csv('./streamlit_dataset/genre.csv')
     ratings = pd.read_csv('./streamlit_dataset/ratings.csv')
+    # Group all 2 star and lower ratings together
+    ratings.rating[ratings.rating == 0.5] = 2
+    ratings.rating[ratings.rating == 1] = 2
+    ratings.rating[ratings.rating == 1.5] = 2
     return genre_df, ratings
 
 
@@ -66,14 +70,10 @@ genres = genres_df.genre.unique()
 trend_df = pd.read_csv('./streamlit_dataset/movie_trend.csv')
 trend_df.drop("Unnamed: 0", axis=1, inplace=True)
 
+
 def viza(title: str):
     # Extract selected movie ratings
     top = ratings[ratings['title'] == title]
-
-    # Group all 2 star and lower ratings together
-    top.rating[top.rating == 0.5] = 2
-    top.rating[top.rating == 1] = 2
-    top.rating[top.rating == 1.5] = 2
 
     # Count how many ratings are in each category: 1 star, 2 star, ect
     grouped = pd.DataFrame(top.groupby(['rating'])['title'].count())
@@ -261,31 +261,32 @@ def main():
                 genre_select = st.selectbox("pick genre category", genres[1:])
             # visualizing how the genres of the movies are distributed
             df_grp_gens = genres_df.groupby("genre").agg({"title": "count"}).reset_index()
-            fig, ax = plt.subplots(figsize=(20, 15))
+            fig1, ax = plt.subplots(figsize=(20, 15))
             ax = sns.barplot(data=df_grp_gens, x="genre", y="title")
             ax.set_xticks(ax.get_xticks())
             ax.set_ylabel('Frequency', fontsize=30)
             ax.set_xlabel('genre', fontsize=30)
             ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize=30)
             ax.set_title(f'Frequency of Genres', fontsize=60)
-            st.pyplot(fig, use_container_width=True)
 
             # wordcloud plot
             d = title_extract()
-            fig, ax = plt.subplots(figsize=(20, 15))
+            fig2, ax = plt.subplots(figsize=(20, 15))
             word_cloud_genre = WordCloud(width=512, height=384, background_color='black', min_font_size=2,
                                          min_word_length=3).generate(str(d[genre_select]))
             ax.imshow(word_cloud_genre)
             ax.axis("off")
-            ax.set_title(f'Movie keywords for {genre_select}', fontsize=60)
-            st.pyplot(fig, use_container_width=True)
+            ax.set_title(f'Movie keywords for {genre_select} movies', fontsize=60)
+
+            st.pyplot(fig2, use_container_width=True)
+            st.pyplot(fig1, use_container_width=True)
 
         if trending_cat:
             st.subheader("Trending Movies")
             st.markdown('Trendy stuff Coming up')
             df_grp = trend_df.groupby('genre')
 
-            if ratings_cat:
+            if ratings_cat or genres_cat:
                 pass
             else:
                 genre_select = st.selectbox("pick genre category", genres[1:])
@@ -296,7 +297,7 @@ def main():
                 ('Recent', 'Popular', 'Hot-List'))
 
             if filter_key == 'Popular':
-                temp = df_grp.get_group(genre_select).sort_values(['popularity', 'weighted_rating'], ascending=False)[:num]
+                temp = df_grp.get_group(genre_select).sort_values(['popularity', 'year_made'], ascending=False)[:num]
                 st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "popularity"]])
 
             elif filter_key == 'Recent':
