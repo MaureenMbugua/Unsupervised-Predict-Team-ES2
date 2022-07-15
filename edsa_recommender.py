@@ -36,7 +36,6 @@ import seaborn as sns
 from numpy import random
 from PIL import Image
 from wordcloud import WordCloud
-from ipywidgets import interact, interact_manual, widgets
 import time
 
 # Custom Libraries
@@ -141,7 +140,7 @@ def title_extract():
     return genres
 
 
-title_list = load_movie_titles('resources/data/movies.csv')
+title_list = load_movie_titles('./streamlit_dataset/recommender_dataset.csv')
 
 
 # App declaration
@@ -177,10 +176,10 @@ def main():
                         'Collaborative Based Filtering'))
 
         # User-based preferences
-        st.write('### Enter Your Three Favorite Movies')
-        movie_1 = st.selectbox('Fisrt Option', title_list[14930:15200])
-        movie_2 = st.selectbox('Second Option', title_list[25055:25255])
-        movie_3 = st.selectbox('Third Option', title_list[21100:21200])
+        st.write(f'### Enter Your Three Favorite Movies {len(title_list)}')
+        movie_1 = st.selectbox('First Option', title_list[0:8000])
+        movie_2 = st.selectbox('Second Option', title_list[8001:16000])
+        movie_3 = st.selectbox('Third Option', title_list[16001:24866])
         fav_movies = [movie_1, movie_2, movie_3]
 
         # Perform top-10 movie recommendation generation
@@ -188,8 +187,7 @@ def main():
             if st.button("Recommend"):
                 try:
                     with st.spinner('Crunching the numbers...'):
-                        top_recommendations = content_model(movie_list=fav_movies,
-                                                            top_n=10)
+                        top_recommendations = content_model(movie_list=fav_movies, top_n=10)
                     st.title("We think you'll like:")
                     for i, j in enumerate(top_recommendations):
                         st.subheader(str(i + 1) + '. ' + j)
@@ -298,15 +296,19 @@ def main():
 
             if filter_key == 'Popular':
                 temp = df_grp.get_group(genre_select).sort_values(['popularity', 'year_made'], ascending=False)[:num]
-                st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "popularity"]])
+                st.dataframe(
+                    temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "popularity"]])
 
             elif filter_key == 'Recent':
-                temp = df_grp.get_group(genre_select).sort_values(['year_made', 'weighted_rating'], ascending=False)[:num]
-                st.dataframe(temp.reset_index(drop=True)[["title", "vote_count", "vote_average", "weighted_rating", "year_made"]])
+                temp = df_grp.get_group(genre_select).sort_values(['year_made', 'weighted_rating'], ascending=False)[
+                       :num]
+                st.dataframe(temp.reset_index(drop=True)[
+                                 ["title", "vote_count", "vote_average", "weighted_rating", "year_made"]])
 
             else:
                 temp = df_grp.get_group(genre_select).sort_values('weighted_rating', ascending=False)[:num]
-                st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "weighted_rating"]])
+                st.dataframe(temp.reset_index(drop=True)[
+                                 ["title", "year_made", "vote_count", "vote_average", "weighted_rating"]])
     # -------------------------------------------------------------------
 
     # Team profiling

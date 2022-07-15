@@ -67,7 +67,7 @@ def prediction_item(item_id):
 
     predictions = []
     for ui in a_train.all_users():
-        predictions.append(model.predict(iid=item_id,uid=ui, verbose = False))
+        predictions.append(model.predict(iid=item_id, uid=ui, verbose=False))
     return predictions
 
 def pred_movies(movie_list):
