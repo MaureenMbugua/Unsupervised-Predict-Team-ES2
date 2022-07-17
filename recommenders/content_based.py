@@ -36,8 +36,8 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 
 # Importing data
-movies = pd.read_csv('./streamlit_dataset/recommender_dataset.csv')
-movies = movies.drop('Unnamed: 0', axis=1)
+movies_df = pd.read_csv('resources/data/recommender_dataset.csv')
+movies_df = movies_df.drop('Unnamed: 0', axis=1)
 
 
 # !! DO NOT CHANGE THIS FUNCTION SIGNATURE !!
@@ -59,11 +59,13 @@ def content_model(movie_list, top_n=10):
         Titles of the top-n movie recommendations to the user.
 
     """
+    # Subset of the data
+    movies = movies_df[:27000]
     # Convenient indexes to map between movie titles and indexes of the 'all_df' dataframe
     indices = pd.Series(movies['title'])
     # Instantiating and generating the count matrix
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2),
-                         min_df=0, stop_words='english')
+                         max_features=5000, stop_words='english')
 
     # Produce a feature matrix, where each row corresponds to a movie,
     # with TF-IDF features as columns
