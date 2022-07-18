@@ -145,6 +145,8 @@ trend_df.drop("Unnamed: 0", axis=1, inplace=True)
 # Loading media
 landing = Image.open("pine_text.jpg")
 logo = Image.open("pine.jpg")
+collab = Image.open("Collaborative-Filtering.png")
+content_img = Image.open("Content-Based-Filtering.png")
 # Loading gif file
 file_ = open("netflix.gif", "rb")
 contents = file_.read()
@@ -157,7 +159,7 @@ def main():
     """Movie Recommender App with Streamlit """
     # Creates a main title and subheader on your page
     col1, col2, col3 = st.columns(3)
-    with col1:
+    with col2:
         st.image(logo)
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
@@ -226,9 +228,19 @@ def main():
     # ------------- SAFE FOR ALTERING/EXTENSION -------------------
     if page_selection == "Solution Overview":
         st.title("Solution Overview")
-        st.write("Describe your winning approach on this page")
+        st.write("We used two type of recommender in the app making, which are:")
+        st.subheader("Collaborative Filtering")
+        st.write("There are two types of collaborative filtering: User-Based and Item-Based; but "
+                 "user-Based was used: Here, we try to find similar users based on their item choices and"
+                 " recommend the items. A user-item rating matrix is created at first. Then, we find the "
+                 "correlations between the users and recommend items based on correlation.")
+        st.image(collab)
+        st.subheader("Content-Based Filtering")
+        st.write("In this type, we will try to find similar items to the user’s selected item. Based on the attribute &"
+                 "characteristic of the movies")
+        st.image(content_img)
 
-    # -------------------------------------------------------------------
+        # -------------------------------------------------------------------
 
     # Exploration section
     if page_selection == "Data Exploration":

@@ -68,32 +68,6 @@ def prediction_item(movie_list):
     return id_store
 
 
-# def pred_movies(movie_list):
-#     """Maps the given favourite movies selected within the app to corresponding
-#     users within the MovieLens dataset.
-#     Parameters
-#     ----------
-#     movie_list : list
-#         Three favourite movies selected by the app user.
-#     Returns
-#     -------
-#     list
-#         User-ID's of users with similar high ratings for each movie.
-#     """
-#     # Store the id of users
-#     id_store = []
-#     # For each movie selected by a user of the app,
-#     # predict a corresponding user within the dataset with the highest rating
-#     for i in movie_list:
-#         predictions = prediction_item(item_id=i)
-#         predictions.sort(key=lambda x: x.est, reverse=True)
-#         # Take the top 10 user id's from each movie with highest rankings
-#         for pred in predictions[:10]:
-#             id_store.append(pred.uid)
-#     # Return a list of user id's
-#     return id_store
-
-
 # !! DO NOT CHANGE THIS FUNCTION SIGNATURE !!
 # You are, however, encouraged to change its content.
 def collab_model(movie_list, top_n=10):
