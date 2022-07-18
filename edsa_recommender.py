@@ -27,6 +27,7 @@
 """
 # Streamlit dependencies
 import streamlit as st
+import base64
 
 # Data handling dependencies
 import pandas as pd
@@ -36,7 +37,6 @@ import seaborn as sns
 from numpy import random
 from PIL import Image
 from wordcloud import WordCloud
-from ipywidgets import interact, interact_manual, widgets
 import time
 
 # Custom Libraries
@@ -45,11 +45,15 @@ from recommenders.collaborative_based import collab_model
 from recommenders.content_based import content_model
 
 
-# Data Loading
+# Functions
 @st.cache
 def data_loader():
     genre_df = pd.read_csv('./streamlit_dataset/genre.csv')
     ratings = pd.read_csv('./streamlit_dataset/ratings.csv')
+    # Group all 2 star and lower ratings together
+    ratings.rating[ratings.rating == 0.5] = 2
+    ratings.rating[ratings.rating == 1] = 2
+    ratings.rating[ratings.rating == 1.5] = 2
     return genre_df, ratings
 
 
@@ -61,19 +65,9 @@ def get_title(genre: str):
     return titles
 
 
-genres_df, ratings = data_loader()
-genres = genres_df.genre.unique()
-trend_df = pd.read_csv('./streamlit_dataset/movie_trend.csv')
-trend_df.drop("Unnamed: 0", axis=1, inplace=True)
-
 def viza(title: str):
     # Extract selected movie ratings
     top = ratings[ratings['title'] == title]
-
-    # Group all 2 star and lower ratings together
-    top.rating[top.rating == 0.5] = 2
-    top.rating[top.rating == 1] = 2
-    top.rating[top.rating == 1.5] = 2
 
     # Count how many ratings are in each category: 1 star, 2 star, ect
     grouped = pd.DataFrame(top.groupby(['rating'])['title'].count())
@@ -141,21 +135,32 @@ def title_extract():
     return genres
 
 
+# Data Loading
 title_list = load_movie_titles('resources/data/movies.csv')
+genres_df, ratings = data_loader()
+genres = genres_df.genre.unique()
+trend_df = pd.read_csv('./streamlit_dataset/movie_trend.csv')
+trend_df.drop("Unnamed: 0", axis=1, inplace=True)
+
+# Loading media
+landing = Image.open("pine_text.jpg")
+logo = Image.open("pine.jpg")
+collab = Image.open("Collaborative-Filtering.png")
+content_img = Image.open("Content-Based-Filtering.png")
+# Loading gif file
+file_ = open("netflix.gif", "rb")
+contents = file_.read()
+data_url = base64.b64encode(contents).decode("utf-8")
+file_.close()
 
 
 # App declaration
 def main():
     """Movie Recommender App with Streamlit """
-    # st.set_page_config(page_title="Movie Recommender", page_icon=":hash:", layout="centered")
-
-    # Creates a main title and subheader on your page -
-    logo = Image.open("movies_suggestmovie.png")
+    # Creates a main title and subheader on your page
     col1, col2, col3 = st.columns(3)
     with col2:
         st.image(logo)
-    # st.title("Eco")
-    # st.subheader("Climate change tweet classification")
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
     # you are welcome to add more options to enrich your app.
@@ -213,19 +218,29 @@ def main():
     # -------------------------------------------------------------------
 
     # Landing page
-    landing = Image.open("recommendation_engine.png")
     if page_selection == "Landing Page":
-        st.image(landing)  # , height=1500)
-        time.sleep(3)
-        st.subheader("Movie Recommender App")
-        st.button("Go to next page")
+        st.markdown(
+            f'<img src="data:image/gif; base64,{data_url}">',
+            unsafe_allow_html=True,
+        )
+        st.image(landing)
 
     # ------------- SAFE FOR ALTERING/EXTENSION -------------------
     if page_selection == "Solution Overview":
         st.title("Solution Overview")
-        st.write("Describe your winning approach on this page")
+        st.write("We used two type of recommender in the app making, which are:")
+        st.subheader("Collaborative Filtering")
+        st.write("There are two types of collaborative filtering: User-Based and Item-Based; but "
+                 "user-Based was used: Here, we try to find similar users based on their item choices and"
+                 " recommend the items. A user-item rating matrix is created at first. Then, we find the "
+                 "correlations between the users and recommend items based on correlation.")
+        st.image(collab)
+        st.subheader("Content-Based Filtering")
+        st.write("In this type, we will try to find similar items to the user’s selected item. Based on the attribute &"
+                 "characteristic of the movies")
+        st.image(content_img)
 
-    # -------------------------------------------------------------------
+        # -------------------------------------------------------------------
 
     # Exploration section
     if page_selection == "Data Exploration":
@@ -261,31 +276,32 @@ def main():
                 genre_select = st.selectbox("pick genre category", genres[1:])
             # visualizing how the genres of the movies are distributed
             df_grp_gens = genres_df.groupby("genre").agg({"title": "count"}).reset_index()
-            fig, ax = plt.subplots(figsize=(20, 15))
+            fig1, ax = plt.subplots(figsize=(20, 15))
             ax = sns.barplot(data=df_grp_gens, x="genre", y="title")
             ax.set_xticks(ax.get_xticks())
             ax.set_ylabel('Frequency', fontsize=30)
             ax.set_xlabel('genre', fontsize=30)
             ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha='right', fontsize=30)
             ax.set_title(f'Frequency of Genres', fontsize=60)
-            st.pyplot(fig, use_container_width=True)
 
             # wordcloud plot
             d = title_extract()
-            fig, ax = plt.subplots(figsize=(20, 15))
+            fig2, ax = plt.subplots(figsize=(20, 15))
             word_cloud_genre = WordCloud(width=512, height=384, background_color='black', min_font_size=2,
                                          min_word_length=3).generate(str(d[genre_select]))
             ax.imshow(word_cloud_genre)
             ax.axis("off")
-            ax.set_title(f'Movie keywords for {genre_select}', fontsize=60)
-            st.pyplot(fig, use_container_width=True)
+            ax.set_title(f'Movie keywords for {genre_select} movies', fontsize=60)
+
+            st.pyplot(fig2, use_container_width=True)
+            st.pyplot(fig1, use_container_width=True)
 
         if trending_cat:
             st.subheader("Trending Movies")
             st.markdown('Trendy stuff Coming up')
             df_grp = trend_df.groupby('genre')
 
-            if ratings_cat:
+            if ratings_cat or genres_cat:
                 pass
             else:
                 genre_select = st.selectbox("pick genre category", genres[1:])
@@ -296,16 +312,20 @@ def main():
                 ('Recent', 'Popular', 'Hot-List'))
 
             if filter_key == 'Popular':
-                temp = df_grp.get_group(genre_select).sort_values(['popularity', 'weighted_rating'], ascending=False)[:num]
-                st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "popularity"]])
+                temp = df_grp.get_group(genre_select).sort_values(['popularity', 'year_made'], ascending=False)[:num]
+                st.dataframe(
+                    temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "popularity"]])
 
             elif filter_key == 'Recent':
-                temp = df_grp.get_group(genre_select).sort_values(['year_made', 'weighted_rating'], ascending=False)[:num]
-                st.dataframe(temp.reset_index(drop=True)[["title", "vote_count", "vote_average", "weighted_rating", "year_made"]])
+                temp = df_grp.get_group(genre_select).sort_values(['year_made', 'weighted_rating'], ascending=False)[
+                       :num]
+                st.dataframe(temp.reset_index(drop=True)[
+                                 ["title", "vote_count", "vote_average", "weighted_rating", "year_made"]])
 
             else:
                 temp = df_grp.get_group(genre_select).sort_values('weighted_rating', ascending=False)[:num]
-                st.dataframe(temp.reset_index(drop=True)[["title", "year_made", "vote_count", "vote_average", "weighted_rating"]])
+                st.dataframe(temp.reset_index(drop=True)[
+                                 ["title", "year_made", "vote_count", "vote_average", "weighted_rating"]])
     # -------------------------------------------------------------------
 
     # Team profiling
@@ -320,9 +340,9 @@ def main():
 
         eliza, olusola, emma = st.columns(3)
 
-        eliza.success("IT PROJECT MANAGER")
-        olusola.success("Business Analyst")
-        emma.success("Systems analyst")
+        eliza.success("TEAM LEAD")
+        olusola.success("DATA ANALYST")
+        emma.success("ML ENGINEER")
 
         with eliza:
             st.header("Elizabeth")
@@ -330,14 +350,15 @@ def main():
 
             with st.expander("Brief Bio"):
                 st.write("""
-                Elizabeth is an IT product manager with a background in user experience design and tons of experience in building
-                high quality softwares. She has experience with building high quality products and scaling them. Her attention to 
-                details is crucial as it has helped to work through models, visualizations, prototypes, requirements and manage across
-                functional team. 
+                Elizabeth is team lead with a background in user experience design and tons of experience 
+                in building high quality software. She has experience with building high quality products and 
+                scaling them. Her attention to details is crucial as it has helped to work through models, 
+                visualizations, prototypes, requirements and manage across functional team. 
                 
-                She works consistently with Data Scientists, Data Engineers, creatiives and other business-oriented 
-                people. She has gathered experience in data analytics, engineering, entrepreneurship, conversion optimization, internet 
-                marketing and UX. Using that experience, she has developed a deep understanding of customer journey and product lifecycle.
+                She works consistently with Data Scientists, Data Engineers, creatives and other business-oriented 
+                people. She has gathered experience in data analytics, engineering, entrepreneurship, conversion 
+                optimization, internet marketing and UX. Using that experience, she has developed a deep 
+                understanding of customer journey and product lifecycle.
                 """)
 
         with olusola:
@@ -346,15 +367,15 @@ def main():
 
             with st.expander("Brief Bio"):
                 st.write("""
-                Founder of TechNation.Inc. Ken has over 10 years experience as a Business Growth manager possessing additional
-                expertis in Product Develpoment. Proficient in facilitating business growth and enhancing market share of 
-                the company by leading in-depth market research and competitor analysis, liasing eith senior management and
-                conceptualizing new product development. 
+                Olusola has over 10 years experience as a data analyst possessing additional expertise in 
+                product development. Proficient in facilitating business growth and enhancing market share of the 
+                company by leading in-depth market research and competitor analysis, liaising with senior management 
+                and conceptualizing new product development. 
                 
-                Highly skilled in functioning across multiple digital platforms and overseeing
-                product design to optimize process. Adept at building businesses and teams from scratch and spearheading Strategy, P&L 
-                Management, Marketing and Operations to lead data-driven decision making, render consumer impact analysis and achieve
-                astronomical growth with respect to profitability and customer acquisition.
+                Highly skilled in functioning across multiple digital platforms and overseeing product design to 
+                optimize process. Adept at building businesses and teams from scratch and spearheading Strategy, 
+                P&L Management, Marketing and Operations to lead data-driven decision making, render consumer impact 
+                analysis and achieve astronomical growth with respect to profitability and customer acquisition.
                 """)
 
         with emma:
@@ -363,15 +384,22 @@ def main():
 
             with st.expander("Brief Bio"):
                 st.write("""
-                Emmanuel is an accomplished Quality Assurance tester with over 3 years experience in Software Testing and Quality Assurance.
-                He has a solid understanding in Software Development Life Cycle, Software Testing Lifecycle, bug lifecycle and testing
-                diiferent procedure.
+                Emmanuel is a Senor Machine Learning engineer with around 8 years of professional IT 
+                experience in Machine Learning statistics modelling, Predictive modelling, Data Analytics, 
+                Data modelling, Data Architecture, Data Analysis, Data mining, Text mining, Natural Language 
+                Processing(NLP), Artificial Intelligence algorithms, Business intelligence (BI), analytics module (
+                like Decision Trees, Linear and Logistics regression), Hadoop, R, Python, Spark, Scala, MS Excel and 
+                SQL. 
+
+                He is proficient in managing the entire Data Science project lifecycle and actively involved in the 
+                phase of project lifecycle including data acquisition, data cleaning, features engineering and 
+                statistical modelling.
                 """)
 
         mohamed, maureen, wasiu = st.columns(3)
-        maureen.success("Lead Software Developer")
-        mohamed.success("Machine Learning Engineer")
-        wasiu.success("IT coordinator")
+        maureen.success("DATA SCIENTIST")
+        mohamed.success("TECHNICAL LEAD")
+        wasiu.success("ML ENGINEER")
 
         maureen_pics = Image.open("funny_head.jpg")
         mohamed_pics = Image.open("funny_head.jpg")
@@ -382,7 +410,7 @@ def main():
             st.image(maureen_pics)
 
             with st.expander("Brief Bio"):
-                st.write("""Maureen is a seasoned forward looking software engineer with 5+ years background in 
+                st.write("""Maureen is a seasoned forward looking data scientist with 5+ years background in 
                 creating and executing innovative software solution to enhance business productivity. Highly 
                 experienced in all aspect of the software development lifecycle and end-to-end project management 
                 from concept through to development and delivery. 
@@ -396,13 +424,13 @@ def main():
 
             with st.expander("Brief Bio"):
                 st.write("""
-                Mohamed is a Senor Machine Learning engineer with around 8 years of professional IT experience in Machine Learning
-                statistics modelling, Predictive modelling, Data Analytics, Data modelling, Data Architecture, Data Analysis, Data
-                mining, Text mining, Natural Language Processing(NLP), Artificial Intelligence algorithms, Business intelligence (BI),
-                analytics module (like Decision Trees, Linear and Logistics regression), Hadoop, R, Python, Spark, Scala, MS Excel and SQL.
+                Mohamed is a seasoned forward looking technical lead with 5+ years background in 
+                creating and executing innovative software solution to enhance business productivity. Highly 
+                experienced in all aspect of the software development lifecycle and end-to-end project management 
+                from concept through to development and delivery. 
 
-                He is proficient in managing the entire Data Science project lifecycle and actively involved in the phase of project
-                lifecycle including data acquisition, data cleaning, features engineering and statistical modelling.
+                He is consistently recognized as a hands-on competent leader, skilled at coordinating cross 
+                functional team in a fast paced deadline driven environment to steer timely project completion.
                 """)
 
         with wasiu:
@@ -410,16 +438,18 @@ def main():
             st.image(wasiu_pics)
 
             with st.expander("Brief Bio"):
-                st.write("""Wasiu is a certified Project Management professional and certified Scrum master with over 
-                5 years experience in project management, project process management, customer service management, 
-                marketing and sales. 
+                st.write("""
+                Wasiu is a Senor Machine Learning engineer with around 8 years of professional IT 
+                experience in Machine Learning statistics modelling, Predictive modelling, Data Analytics, 
+                Data modelling, Data Architecture, Data Analysis, Data mining, Text mining, Natural Language 
+                Processing(NLP), Artificial Intelligence algorithms, Business intelligence (BI), analytics module (
+                like Decision Trees, Linear and Logistics regression), Hadoop, R, Python, Spark, Scala, MS Excel and 
+                SQL. 
 
-                Being a highly motivated and team-oriented professional, she has successfully led large 
-                cross-functional team to achieve strategic objectives and have managed a team of project managers 
-                responsible for implementing a project portfolio.""")
-
-                # You may want to add more sections here for aspects such as an EDA,
-    # or to provide your business pitch.
+                He is proficient in managing the entire Data Science project lifecycle and actively involved in the 
+                phase of project lifecycle including data acquisition, data cleaning, features engineering and 
+                statistical modelling.
+                """)
 
 
 if __name__ == '__main__':
