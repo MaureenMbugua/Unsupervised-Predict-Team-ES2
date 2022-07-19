@@ -50,10 +50,6 @@ from recommenders.content_based import content_model
 def data_loader():
     genre_df = pd.read_csv('./streamlit_dataset/genre.csv')
     ratings = pd.read_csv('./streamlit_dataset/ratings.csv')
-    # Group all 2 star and lower ratings together
-    ratings.rating[ratings.rating == 0.5] = 2
-    ratings.rating[ratings.rating == 1] = 2
-    ratings.rating[ratings.rating == 1.5] = 2
     return genre_df, ratings
 
 
@@ -87,7 +83,7 @@ def viza(title: str):
     sns.set(font_scale=1.25)
 
     # Create the pie chart
-    pie = ax.pie(grouped['rating_count'],
+    ax.pie(grouped['rating_count'],
                  # autopct='%1.1f%%',
                  labels=labels,
                  shadow=True,
@@ -262,7 +258,7 @@ def main():
             st.pyplot(result, use_container_width=True)
 
             # distribution of mean rating
-            rating_grp = ratings.groupby("movieId")[["rating"]].mean()
+            rating_grp = ratings.groupby("title")[["rating"]].mean()
             fig, ax = plt.subplots(figsize=(10, 7))
             sns.histplot(data=rating_grp, x='rating', bins=10)
             ax.set_title(f'General Rating Distribution', fontsize=30)
