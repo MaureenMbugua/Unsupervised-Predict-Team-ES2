@@ -33,11 +33,9 @@ import pandas as pd
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
 
 # Importing data
-movies_df = pd.read_csv('resources/data/recommender_dataset.csv')
-movies_df = movies_df.drop('Unnamed: 0', axis=1)
+movies_df = pd.read_csv('resources/data/movies.csv',sep = ',')
 
 
 # !! DO NOT CHANGE THIS FUNCTION SIGNATURE !!
@@ -61,6 +59,7 @@ def content_model(movie_list, top_n=10):
     """
     # Subset of the data
     movies = movies_df[:27000]
+    movies['keyWords'] = movies['genres'].str.replace('|', ' ')
     # Convenient indexes to map between movie titles and indexes of the 'all_df' dataframe
     indices = pd.Series(movies['title'])
     # Instantiating and generating the count matrix
@@ -69,7 +68,7 @@ def content_model(movie_list, top_n=10):
 
     # Produce a feature matrix, where each row corresponds to a movie,
     # with TF-IDF features as columns
-    tf_enrich_matrix = tf.fit_transform(movies['concat'])
+    tf_enrich_matrix = tf.fit_transform(movies['keyWords'])
 
     cosine_sim = cosine_similarity(tf_enrich_matrix, tf_enrich_matrix)
 
