@@ -65,7 +65,7 @@ def content_model(movie_list, top_n=10):
     indices = pd.Series(movies['title'])
     # Instantiating and generating the count matrix
     tf = TfidfVectorizer(analyzer='word', ngram_range=(1, 2),
-                         max_features=5000, stop_words='english')
+                         min_df=0, stop_words='english')
 
     # Produce a feature matrix, where each row corresponds to a movie,
     # with TF-IDF features as columns

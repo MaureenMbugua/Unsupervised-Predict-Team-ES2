@@ -24,9 +24,8 @@ import numpy as np
 import pickle
 import copy
 from surprise import Reader, Dataset
-from surprise import SVD, NormalPredictor, BaselineOnly, KNNBasic, NMF
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import CountVectorizer
+from numpy import random
 
 # Importing data
 movies_df = pd.read_csv('resources/data/recommender_dataset.csv')
@@ -35,7 +34,7 @@ ratings_df = pd.read_csv('resources/data/ratings.csv')
 ratings_df.drop(['timestamp'], axis=1, inplace=True)
 
 # We make use of an SVD model trained on a subset of the MovieLens 10k dataset.
-model = pickle.load(open('resources/models/svd_custom_model.pkl', 'rb'))
+model = pickle.load(open('resources/models/baselineOnly.pkl', 'rb'))
 
 
 def prediction_item(movie_list):
@@ -103,6 +102,26 @@ def collab_model(movie_list, top_n=10):
     # Creating the feature 'weighted_rating'
     pred_mod_df['weighted_rating'] = pred_mod_df.apply(weighted_rating, axis=1)
 
-    sorted_df = pred_mod_df.sort_values(['weighted_rating', 'rating_count'], ascending=[False, True])
-    recommended_movies = sorted_df.title.to_list()[:10]
-    return recommended_movies
+    # Convenient indexes to map between movie titles and indexes of the 'all_df' dataframe
+    titles = pred_mod_df['title']
+    indices = pd.Series(pred_mod_df.index, index=pred_mod_df['title'])
+    df_array = np.array(pred_mod_df[["rating_count", "rating_mean", "weighted_rating"]])
+    cosine_sim_enrich = cosine_similarity(df_array, df_array)
+    title = indices.index[random.randint(cosine_sim_enrich.shape[0])]
+
+    # Convert the string movie title to a numeric index for our
+    # similarity matrix
+    b_idx = indices[title]
+    # Extract all similarity values computed with the reference movie title
+    sim_scores = list(enumerate(cosine_sim_enrich[b_idx]))
+    # Sort the values, keeping a copy of the original index of each value
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    # Select the top-N values for recommendation
+    sim_scores = sim_scores[:top_n]
+    # Collect indexes
+    movie_indices = [i[0] for i in sim_scores]
+    # Convert the indexes back into titles
+
+    # sorted_df = pred_mod_df.sort_values(['rating_count'], ascending=[False])
+    # recommended_movies = sorted_df.title.to_list()[:10]
+    return titles.iloc[movie_indices]
