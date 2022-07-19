@@ -28,8 +28,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from numpy import random
 
 # Importing data
-movies_df = pd.read_csv('resources/data/recommender_dataset.csv')
-movies_df = movies_df.drop('Unnamed: 0', axis=1)
+movies_df = pd.read_csv('resources/data/movies.csv',sep = ',')
 ratings_df = pd.read_csv('resources/data/ratings.csv')
 ratings_df.drop(['timestamp'], axis=1, inplace=True)
 
@@ -121,7 +120,4 @@ def collab_model(movie_list, top_n=10):
     # Collect indexes
     movie_indices = [i[0] for i in sim_scores]
     # Convert the indexes back into titles
-
-    # sorted_df = pred_mod_df.sort_values(['rating_count'], ascending=[False])
-    # recommended_movies = sorted_df.title.to_list()[:10]
     return titles.iloc[movie_indices]

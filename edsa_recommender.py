@@ -160,7 +160,7 @@ def main():
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
     # you are welcome to add more options to enrich your app.
-    page_options = ["Landing Page", "Recommender System", "Data Exploration",
+    page_options = ["Recommender System", "Landing Page", "Data Exploration",
                     "Solution Overview", "About team"]
 
     # -------------------------------------------------------------------
@@ -330,9 +330,9 @@ def main():
         st.subheader("Meet our awesome seasoned professionals behind the great APP")
 
         st.markdown(" ")
-        eliza_pic = Image.open("funny_head.jpg")
+        eliza_pic = Image.open("team_pics/eliza.jpg")
         olusola_pic = Image.open("funny_head.jpg")
-        emma_pic = Image.open("funny_head.jpg")
+        emma_pic = Image.open("team_pics/adegbem.jpg")
 
         eliza, olusola, emma = st.columns(3)
 
@@ -397,8 +397,8 @@ def main():
         mohamed.success("TECHNICAL LEAD")
         wasiu.success("ML ENGINEER")
 
-        maureen_pics = Image.open("funny_head.jpg")
-        mohamed_pics = Image.open("funny_head.jpg")
+        maureen_pics = Image.open("team_pics/maureen.jpg")
+        mohamed_pics = Image.open("team_pics/mohammed.jpg")
         wasiu_pics = Image.open("funny_head.jpg")
 
         with maureen:
