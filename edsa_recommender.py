@@ -37,7 +37,6 @@ import seaborn as sns
 from numpy import random
 from PIL import Image
 from wordcloud import WordCloud
-import time
 
 # Custom Libraries
 from utils.data_loader import load_movie_titles
