@@ -160,7 +160,7 @@ def main():
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
     # you are welcome to add more options to enrich your app.
-    page_options = ["Landing Page", "Recommender System",  "Data Exploration",
+    page_options = ["Recommender System", "Landing Page", "Data Exploration",
                     "Solution Overview", "About team"]
 
     # -------------------------------------------------------------------
