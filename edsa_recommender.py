@@ -37,7 +37,6 @@ import seaborn as sns
 from numpy import random
 from PIL import Image
 from wordcloud import WordCloud
-import time
 
 # Custom Libraries
 from utils.data_loader import load_movie_titles
@@ -160,7 +159,7 @@ def main():
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
     # you are welcome to add more options to enrich your app.
-    page_options = ["Landing Page", "Recommender System",  "Data Exploration",
+    page_options = ["Recommender System", "Landing Page", "Data Exploration",
                     "Solution Overview", "About team"]
 
     # -------------------------------------------------------------------
@@ -401,7 +400,7 @@ def main():
 
         maureen_pics = Image.open("team_pics/maureen.jpg")
         mohamed_pics = Image.open("team_pics/mohammed.jpg")
-        wasiu_pics = Image.open("team_pics/mohammed.jpg")
+        wasiu_pics = Image.open("team_pics/waisu.jpg")
 
         with maureen:
             st.header("Maureen")
