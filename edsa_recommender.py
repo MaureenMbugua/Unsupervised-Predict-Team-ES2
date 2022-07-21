@@ -400,7 +400,7 @@ def main():
 
         maureen_pics = Image.open("team_pics/maureen.jpg")
         mohamed_pics = Image.open("team_pics/mohammed.jpg")
-        wasiu_pics = Image.open("team_pics/mohammed.jpg")
+        wasiu_pics = Image.open("team_pics/waisu.jpg")
 
         with maureen:
             st.header("Maureen")
