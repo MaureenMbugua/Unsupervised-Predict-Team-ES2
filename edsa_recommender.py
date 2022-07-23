@@ -83,13 +83,13 @@ def viza(title: str):
 
     # Create the pie chart
     ax.pie(grouped['rating_count'],
-                 # autopct='%1.1f%%',
-                 labels=labels,
-                 shadow=True,
-                 startangle=10,
-                 pctdistance=1.115,
-                 explode=(random.choice([0.1], size=(len(grouped['rating_count']))))
-                 )
+           # autopct='%1.1f%%',
+           labels=labels,
+           shadow=True,
+           startangle=10,
+           pctdistance=1.115,
+           explode=(random.choice([0.1], size=(len(grouped['rating_count']))))
+           )
 
     # Turn the pie chart into a donut chart
     centre_circle = plt.Circle((0, 0), 0.70, fc='white')
@@ -130,6 +130,12 @@ def title_extract():
     return genres
 
 
+def markdown_edit(text, text_size=30, color='Blue', alignment='center', style='Courier'):
+    original_title = f'<p style="font-family:{style}; color:{color}; text-align: {alignment}; ' \
+                     f'font-size: {text_size}px;">{text}</p>'
+    return st.markdown(original_title, unsafe_allow_html=True)
+
+
 # Data Loading
 title_list = load_movie_titles('resources/data/movies.csv')
 genres_df, ratings = data_loader()
@@ -138,8 +144,9 @@ trend_df = pd.read_csv('./streamlit_dataset/movie_trend.csv')
 trend_df.drop("Unnamed: 0", axis=1, inplace=True)
 
 # Loading media
-landing = Image.open("pine_text.jpg")
-logo = Image.open("pine.jpg")
+landing = Image.open("pine_text1.jpg")
+landing1 = Image.open("pine_text2.jpg")
+logo = Image.open("logo1.jpg")
 collab = Image.open("Collaborative-Filtering.png")
 content_img = Image.open("Content-Based-Filtering.png")
 # Loading gif file
@@ -153,9 +160,9 @@ file_.close()
 def main():
     """Movie Recommender App with Streamlit """
     # Creates a main title and subheader on your page
-    col1, col2, col3 = st.columns(3)
-    with col2:
-        st.image(logo)
+    col1, col2, col3, col4, col5, col6, col7, col8, col9 = st.columns(9)
+    with col3:
+        st.image(logo, width=400, use_column_width='never')
 
     # DO NOT REMOVE the 'Recommender System' option below, however,
     # you are welcome to add more options to enrich your app.
@@ -170,7 +177,7 @@ def main():
         # Header contents
         st.write('# Movie Recommender Engine')
         st.write('### EXPLORE Data Science Academy Unsupervised Predict')
-        st.image('resources/imgs/Image_header.png',use_column_width=True)
+        st.image('resources/imgs/Image_header.png', use_column_width=True)
         # Recommender System algorithm selection
         sys = st.radio("Select an algorithm",
                        ('Content Based Filtering',
@@ -178,10 +185,10 @@ def main():
 
         # User-based preferences
         st.write('### Enter Your Three Favorite Movies')
-        movie_1 = st.selectbox('Fisrt Option',title_list[14930:15200])
-        movie_2 = st.selectbox('Second Option',title_list[25055:25255])
-        movie_3 = st.selectbox('Third Option',title_list[21100:21200])
-        fav_movies = [movie_1,movie_2,movie_3]
+        movie_1 = st.selectbox('Fisrt Option', title_list[14930:15200])
+        movie_2 = st.selectbox('Second Option', title_list[25055:25255])
+        movie_3 = st.selectbox('Third Option', title_list[21100:21200])
+        fav_movies = [movie_1, movie_2, movie_3]
 
         # Perform top-10 movie recommendation generation
         if sys == 'Content Based Filtering':
@@ -191,12 +198,11 @@ def main():
                         top_recommendations = content_model(movie_list=fav_movies,
                                                             top_n=10)
                     st.title("We think you'll like:")
-                    for i,j in enumerate(top_recommendations):
-                        st.subheader(str(i+1)+'. '+j)
+                    for i, j in enumerate(top_recommendations):
+                        st.subheader(str(i + 1) + '. ' + j)
                 except:
                     st.error("Oops! Looks like this algorithm does't work.\
                               We'll need to fix it!")
-
 
         if sys == 'Collaborative Based Filtering':
             if st.button("Recommend"):
@@ -205,38 +211,67 @@ def main():
                         top_recommendations = collab_model(movie_list=fav_movies,
                                                            top_n=10)
                     st.title("We think you'll like:")
-                    for i,j in enumerate(top_recommendations):
-                        st.subheader(str(i+1)+'. '+j)
+                    for i, j in enumerate(top_recommendations):
+                        st.subheader(str(i + 1) + '. ' + j)
                 except:
                     st.error("Oops! Looks like this algorithm does't work.\
                               We'll need to fix it!")
-
 
     # -------------------------------------------------------------------
 
     # Landing page
     if page_selection == "Landing Page":
-        st.markdown(
-            f'<img src="data:image/gif; base64,{data_url}">',
-            unsafe_allow_html=True,
-        )
+        col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
+        with col2:
+            st.markdown(
+                f'<img src="data:image/gif; base64,{data_url}">',
+                unsafe_allow_html=True,
+            )
+
         st.image(landing)
+        st.image(landing1)
+        # original_title = f'<p style="font-family:Courier; color:Blue; font-size: 20px;">Original image</p>'
+        # st.markdown(f'{original_title}{landing1}', unsafe_allow_html=True)
 
     # ------------- SAFE FOR ALTERING/EXTENSION -------------------
     if page_selection == "Solution Overview":
         st.title("Solution Overview")
-        st.write("We used two type of recommender in the app making, which are:")
-        st.subheader("Collaborative Filtering")
-        st.write("There are two types of collaborative filtering: User-Based and Item-Based; but "
-                 "user-Based was used: Here, we try to find similar users based on their item choices and"
-                 " recommend the items. A user-item rating matrix is created at first. Then, we find the "
-                 "correlations between the users and recommend items based on correlation.")
+        sub = "The project went through seven stages, which are:"
+        markdown_edit(text=sub, style='Fantasy', color='SlateGray', alignment='justify', text_size=30)
+        sub1 = '1. <b><u>Data collection</u></b>: Here we obtain data from the client and also source other data from ' \
+               'open source website such as IMDB, Kaggle and Movielens'
+        markdown_edit(text=sub1, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
+        sub2 = '2. <b><u>Data Preparation</u></b>: At this stage we work on the data to format each feature/column ' \
+               'in the datasets to the appropriate datatype, remove or modify outliers and null/invalid values'
+        markdown_edit(text=sub2, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
+        sub3 = '3. <b><u>Data Exploration</u></b>: Here we work on gaining insight about the data and it ' \
+               'sufficiency to cater for the problem at hand.'
+        markdown_edit(text=sub3, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
+        sub4 = '4. <b><u>Engineering</u></b> Features: Here we select features to use in our model, and engineer ' \
+               'new features that would better inform our model and give better predictions.'
+        markdown_edit(text=sub4, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
+        sub4 = '5. <b><u>Modeling</u></b>: Here will try two major recommender system which are:'
+        markdown_edit(text=sub4, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
+        sub4_1 = 'i. <b><u>Collaborative Filtering</u></b>: We used two type of recommender in the app making, ' \
+                 'which are: There are also two types of collaborative filtering: User-Based and Item-Based; but ' \
+                 'user-Based was used: Here, we try to find similar users based on their item choices and recommend ' \
+                 'the items. A user-item rating matrix is created at first. Then, we find the correlations between ' \
+                 'the users and recommend items based on correlation.'
+        markdown_edit(text=sub4_1, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
         st.image(collab)
-        st.subheader("Content-Based Filtering")
-        st.write("In this type, we will try to find similar items to the user’s selected item. Based on the attribute &"
-                 "characteristic of the movies")
+        sub4_2 = 'ii. <b><u>Content-Based Filtering</u></b>: In this type, we will try to find similar items to the ' \
+                 'user’s selected item. Based on the attribute & characteristic of the movies'
+        markdown_edit(text=sub4_2, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
         st.image(content_img)
-
+        sub5 = '6. <b><u>Model Evaluation</u></b>: At this stage we check the performance of our recommender system, ' \
+               'and in this particular project our aim is to see how good the system can predict similar movies ' \
+               'based on the user characteristics or the movies the user has selected. We then go ahead to adjust ' \
+               'or use model hyper-parameters to tune the model and ultimately arrive at a better system'
+        markdown_edit(text=sub5, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
+        sub6 = '7. <b><u>Deployment</u></b>: This is the final stage of the project where we deploy our solution to ' \
+               'the world (using steamlit and AWS EC2 instance) and potential client to evaluate and test with ' \
+               'real world scenario'
+        markdown_edit(text=sub6, style='Fantasy', color='Indigo', alignment='justify', text_size=20)
         # -------------------------------------------------------------------
 
     # Exploration section
@@ -244,7 +279,7 @@ def main():
         st.subheader("Exploratory Data Analysis")
         col1, pick, col3 = st.columns(3)
         with col1:
-            st.write('Pick subject you want an insight on:')
+            st.write('Pick a category you want an insight on:')
         with pick:
             ratings_cat = st.checkbox('Film ratings')
             genres_cat = st.checkbox('All about Genre')
@@ -257,6 +292,11 @@ def main():
             option = st.selectbox('What are your favorite movies', titles)
             result = viza(option)
             st.pyplot(result, use_container_width=True)
+            original_title = f'<p style="font-family:Georgia; color:Blue; text-align: center; ' \
+                             f'font-size: 30px;"></p>'
+            st.markdown(original_title, unsafe_allow_html=True)
+            text = f'This donut chart shows how {option} movies was rated by the users'
+            markdown_edit(text=text, text_size=30, style='Times New Roman')
 
             # distribution of mean rating
             rating_grp = ratings.groupby("title")[["rating"]].mean()
@@ -264,6 +304,9 @@ def main():
             sns.histplot(data=rating_grp, x='rating', bins=10)
             ax.set_title(f'General Rating Distribution', fontsize=30)
             st.pyplot(fig, use_container_width=True)
+            text = 'This is an histogram that shows the distribution for aggregated ratings in the whole datasets, ' \
+                   'where bulk of users rating are within 3-4 stars'
+            markdown_edit(text=text, text_size=20, style='Tahoma')
 
         if genres_cat:
             st.subheader("Genre Fair")
@@ -291,7 +334,13 @@ def main():
             ax.set_title(f'Movie keywords for {genre_select} movies', fontsize=60)
 
             st.pyplot(fig2, use_container_width=True)
+            text = f'The wordCloud above depict important title keywords in all movies in the {genre_select} ' \
+                   f'genres and can further inform what type of movies in this genres will gain our users favours'
+            markdown_edit(text=text, color='SlateBlue', text_size=25, style='Garamond')
             st.pyplot(fig1, use_container_width=True)
+            text = 'This is an histogram visual that categorize movies into genres and shows the frequency of the ' \
+                   'genres across the whole datasets, where we have "Drama" has the highest genre'
+            markdown_edit(text=text, color='SlateBlue', text_size=25, style='Garamond')
 
         if trending_cat:
             st.subheader("Trending Movies")
@@ -323,12 +372,16 @@ def main():
                 temp = df_grp.get_group(genre_select).sort_values('weighted_rating', ascending=False)[:num]
                 st.dataframe(temp.reset_index(drop=True)[
                                  ["title", "year_made", "vote_count", "vote_average", "weighted_rating"]])
+            text = f'The table above shows a ranking of {genre_select} movies base on the filter key you selected ({filter_key}) ' \
+                   f'and the number ({num}) of movies you decides  from the slider above'
+            markdown_edit(text=text, color='FireBrick', text_size=20, alignment='left', style='Trebuchet MS')
     # -------------------------------------------------------------------
 
     # Team profiling
     if page_selection == "About team":
         # col1, col2, col3 = st.columns(3)
-        st.subheader("Meet our awesome seasoned professionals behind the great APP")
+        text = "Meet our Awesome Seasoned Professionals Behind The Great APP"
+        markdown_edit(text=text, color='SeaGreen', style='Fantasy')
 
         st.markdown(" ")
         eliza_pic = Image.open("team_pics/eliza.jpg")
