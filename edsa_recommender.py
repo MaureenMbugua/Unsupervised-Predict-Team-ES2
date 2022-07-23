@@ -301,7 +301,8 @@ def main():
             # distribution of mean rating
             rating_grp = ratings.groupby("title")[["rating"]].mean()
             fig, ax = plt.subplots(figsize=(10, 7))
-            ax = sns.histplot(data=rating_grp, x='rating', bins=10)
+            plt.hist(data=rating_grp, x='rating', bins=10)
+            # ax = sns.histplot(data=rating_grp, x='rating', bins=10)
             ax.set_title(f'General Rating Distribution', fontsize=30)
             st.pyplot(fig, use_container_width=True)
             text = 'This is an histogram that shows the distribution for aggregated ratings in the whole datasets, ' \
