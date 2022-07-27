@@ -146,7 +146,7 @@ trend_df.drop("Unnamed: 0", axis=1, inplace=True)
 # Loading media
 landing = Image.open("pine_text1.jpg")
 landing1 = Image.open("pine_text2.jpg")
-logo = Image.open("logo1.jpg")
+logo = Image.open("logo2.jpg")
 collab = Image.open("Collaborative-Filtering.png")
 content_img = Image.open("Content-Based-Filtering.png")
 # Loading gif file
